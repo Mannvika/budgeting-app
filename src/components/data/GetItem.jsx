@@ -18,9 +18,7 @@ const GetItem = () => {
         const year = dateString.slice(0, 4);
         const month = dateString.slice(4, 6);
         const day = dateString.slice(6, 8);
-        const hours = dateString.slice(8, 10);
-        const minutes = dateString.slice(10, 12);
-        return `${month}/${day}/${year} ${hours}:${minutes}`;
+        return `${month}/${day}/${year}`;
     };
 
     const getItem = () => {

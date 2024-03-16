@@ -23,7 +23,8 @@ const PutItem = () => {
         const day = ('0' + date.getDate()).slice(-2);
         const hours = ('0' + date.getHours()).slice(-2);
         const minutes = ('0' + date.getMinutes()).slice(-2);
-        return parseInt(`${year}${month}${day}${hours}${minutes}`);
+        const seconds = ('0' + date.getSeconds()).slice(-2);
+        return parseInt(`${year}${month}${day}${hours}${minutes}${seconds}`);
     };
 
     const putItem = (e) => {

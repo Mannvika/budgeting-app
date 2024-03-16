@@ -1,13 +1,13 @@
 import React, { useState } from 'react'
 import { auth } from "../../firebase"
-
-var AWS = require("aws-sdk");
+import AWS from 'aws-sdk';
 
 AWS.config.update({
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    accessKeyId: process.env.REACT_APP_AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.REACT_APP_AWS_SECRET_ACCESS_KEY,
     region: "us-east-2"
-});
+  });
+  
 var ddb = new AWS.DynamoDB({ apiVersion: "2012-08-10" });
 
 const PutItem = () => {

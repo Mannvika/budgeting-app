@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { auth } from "../../firebase"
 import AWS from 'aws-sdk';
+import { Chart } from 'react-google-charts';
 
 AWS.config.update({
     accessKeyId: process.env.REACT_APP_AWS_ACCESS_KEY_ID,
@@ -12,6 +13,7 @@ var ddb = new AWS.DynamoDB({ apiVersion: "2012-08-10" });
 
 const GetItem = () => {
     const[items, setItems] = useState([]);
+    const[chartData, setChartData] = useState([]);
 
     const formatDateFromNumber = (numberDate) => {
         const dateString = numberDate.toString();
@@ -37,9 +39,19 @@ const GetItem = () => {
             else{
                 console.log("Success", data);
                 setItems(data.Items);
+                generateChartData(data.Items)
             }
         })
+
     }
+
+    const generateChartData = (items) => {
+        const chartData = items.map(item => {
+            return [item.PURCHASE_NAME.S, parseFloat(item.PURCHASE_PRICE.N)];
+        });
+        setChartData([['Name', 'Price'], ...chartData]);
+    };
+
     return (
         <div className='get-item-container'>
             <h1>Your Purchases</h1>
@@ -54,6 +66,22 @@ const GetItem = () => {
                 </li>
                 ))}
             </ul>
+            <div className='chart-container'>
+            <Chart
+                chartType="PieChart"
+                data={chartData}
+                options={{
+                    legend: {position: 'none'},
+                    backgroundColor: {fill:'transparent'},
+                    pieHole: 0.4,
+                    pieSliceTextStyle: {
+                        color: 'black',
+                      },
+                      'width':400,
+                      'height':900,
+                }}
+            />
+            </div>
         </div>
     );
 };

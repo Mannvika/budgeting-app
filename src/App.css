@@ -2,14 +2,83 @@
   text-align: center;
 }
 
+h1{
+  font-family: 'Roboto Slab', sans-serif;
+  font-size: 5rem;
+  color: #2A8DFA;
+  font-weight: bold;
+  margin: 0;
+}
+
+h2{
+  font-family: 'Roboto Slab', sans-serif;
+  font-weight: bold;
+  font-size: 2rem;
+  color: #1DE19A;
+  margin: 0;
+}
+
 .chart-container {
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
+  margin: 0;
 }
 
-body{
-  background-color: #f2f3f3;
+.top-left-buttons{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  position: absolute;
+  gap: 1rem;
+  top: 0;
+  left: 0;
+  margin: 2rem;
 }
+
+.dashboard-container{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  position: relative;
+}
+
+.button {
+  background-color: #ffffff00;
+  color: #2A8DFA;
+  width: 12em;
+  height: 5em;
+  border: #1DE19A 0.2em solid;
+  border-radius: 11px;
+  text-align: right;
+  transition: all 0.6s ease;
+}
+
+.button:hover {
+  background-color: #1DE19A;
+  cursor: pointer;
+}
+
+.button svg {
+  width: 1.6em;
+  margin: -0.2em 0.8em 1em;
+  position: absolute;
+  display: flex;
+  transition: all 0.6s ease;
+}
+
+.button:hover svg {
+  transform: translateX(5px);
+}
+
+.text {
+  margin: 0 1.8em
+}
+
+
+
+
 

@@ -4,9 +4,10 @@ import './App.css';
 import SignIn from './components/auth/SignIn.jsx';
 import SignUp from './components/auth/SignUp.jsx';
 import AuthDetails from './components/auth/AuthDetails.jsx';
-import PutItem from './components/data/PutItem.jsx';
-import GetItem from './components/data/GetItem.jsx';
+import './fonts/RobotoSlab-Regular.ttf';
+import './fonts/RobotoSlab-Bold.ttf';
 import { auth } from './firebase';
+import Dashboard from './components/data/Dashboard.jsx';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -29,9 +30,7 @@ function App() {
       )}
       {user && (
         <>
-          <AuthDetails/>
-          <PutItem/>
-          <GetItem/>
+          <Dashboard/>
         </>
       )}
     </div>

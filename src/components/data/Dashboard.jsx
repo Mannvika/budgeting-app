@@ -18,6 +18,8 @@ const Dashboard = () => {
     const [purchaseType, setPurchaseType] = useState('TestPurchase');
     const[items, setItems] = useState([]);
     const[chartData, setChartData] = useState([]);
+    const [showOverlay, setShowOverlay] = useState(false);
+    const [selectedData, setSelectedData] = useState(null);
     
 
     useEffect(() => {
@@ -100,16 +102,58 @@ const Dashboard = () => {
     };
 
     const generateChartData = (items) => {
-        const chartData = items.map(item => {
-            return [item.PURCHASE_NAME.S, parseFloat(item.PURCHASE_PRICE.N)];
-        });
-        setChartData([['Name', 'Price'], ...chartData]);
+        const chartData = items.reduce((accumulator, item) => {
+            const type = item.PURCHASE_TYPE.S;
+            const price = parseFloat(item.PURCHASE_PRICE.N);
+            
+            if (accumulator[type]) {
+                accumulator[type] += price;
+            } else {
+                accumulator[type] = price;
+            }
+            
+            return accumulator;
+        }, {});
+    
+        const formattedData = Object.entries(chartData).map(([type, totalPrice]) => [type, totalPrice]);
+        setChartData([['Type', 'Total Price'], ...formattedData]);
     };
+
+    const toggleOverlay = () => {
+        setShowOverlay(!showOverlay);
+    };
+
+    const selectDataToRemove = (data) => {
+        setSelectedData(data);
+    };
+
+    const removeSelectedData = () => {
+        var params = {
+            TableName: "Purchases",
+            Item:{
+                userID: { S: auth.currentUser.uid},
+                purchaseTimestamp: { N: purchaseTimestamp.toString()},
+                PURCHASE_NAME: { S: purchaseName},
+                PURCHASE_PRICE: { N: purchasePrice.toString()},
+                PURCHASE_TYPE: { S: purchaseType},
+            }
+        }
+        ddb.deleteItem(params, function(err, data){
+            if(err){
+                console.log("Error", err);
+            }
+            else{
+                console.log("Success", data);
+            }
+        })
+        toggleOverlay();
+    };
+    
 
     return (
         <div className='dashboard-container'>
             <div  className='top-left-buttons'>
-            <button class="button">
+            <button class="button" onClick={toggleOverlay}>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75"></path>
                 </svg>
@@ -167,6 +211,22 @@ const Dashboard = () => {
                     <button type='submit'>Add Purchase</button>
                 </form>
                 </div>
+                {showOverlay && (
+                <div className="overlay">
+                    <div className="overlay-content">
+                        <h2>Data List</h2>
+                        <ul>
+                            {items.map((item, index) => (
+                                <li key={index}>
+                                    {item.PURCHASE_NAME.S} - {item.PURCHASE_PRICE.N}
+                                    <button onClick={() => selectDataToRemove(item)}>Remove</button>
+                                </li>
+                            ))}
+                        </ul>
+                        <button onClick={toggleOverlay}>Close</button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

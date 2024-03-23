@@ -1,16 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { auth } from "../../firebase"
 import { signOut } from 'firebase/auth';
-import AWS from 'aws-sdk';
+import {getItem, putItem, deleteItem } from "../../dynamodb";
 import { Chart } from 'react-google-charts';
-
-AWS.config.update({
-    accessKeyId: process.env.REACT_APP_AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.REACT_APP_AWS_SECRET_ACCESS_KEY,
-    region: "us-east-2"
-  });
-  
-var ddb = new AWS.DynamoDB({ apiVersion: "2012-08-10" });
 
 const Dashboard = () => {
     const [purchaseName, setPurchaseName] = useState('Test');
@@ -18,12 +10,10 @@ const Dashboard = () => {
     const [purchaseType, setPurchaseType] = useState('TestPurchase');
     const[items, setItems] = useState([]);
     const[chartData, setChartData] = useState([]);
-    const [showOverlay, setShowOverlay] = useState(false);
-    const [selectedData, setSelectedData] = useState(null);
-    
+    const [showOverlay, setShowOverlay] = useState(false);    
 
     useEffect(() => {
-        getItem();
+        loadItems();
     }, []);
 
     const userSignOut = () =>{
@@ -40,27 +30,8 @@ const Dashboard = () => {
         return `${month}/${day}/${year}`;
     };
 
-    const getNumberFormatFromDate = (timestamp) => {
-        const date = new Date(timestamp);
-        const year = date.getFullYear();
-        const month = ('0' + (date.getMonth() + 1)).slice(-2);
-        const day = ('0' + date.getDate()).slice(-2);
-        const hours = ('0' + date.getHours()).slice(-2);
-        const minutes = ('0' + date.getMinutes()).slice(-2);
-        const seconds = ('0' + date.getSeconds()).slice(-2);
-        return parseInt(`${year}${month}${day}${hours}${minutes}${seconds}`);
-    };
-
-    const getItem = () => {
-        var params = {
-            ExpressionAttributeValues: {
-              ":u": { S: auth.currentUser.uid }
-            },
-            KeyConditionExpression: "userID = :u",
-            TableName: "Purchases",
-        };
-
-        ddb.query(params, function(err, data){
+    const loadItems = () => {
+        getItem(auth.currentUser.uid, function(err, data){
             if(err){
                 console.log("Error", err);
             }
@@ -69,36 +40,20 @@ const Dashboard = () => {
                 setItems(data.Items);
                 generateChartData(data.Items)
             }
-        })
-
+        });
     };
 
-    const putItem = (e) => {
+    const uploadItem = (e) => {
         e.preventDefault();
-        const timestamp = Date.now();
-        const purchaseTimestamp = getNumberFormatFromDate(timestamp);
-
-        var params = {
-            TableName: "Purchases",
-            Item:{
-                userID: { S: auth.currentUser.uid},
-                purchaseTimestamp: { N: purchaseTimestamp.toString()},
-                PURCHASE_NAME: { S: purchaseName},
-                PURCHASE_PRICE: { N: purchasePrice.toString()},
-                PURCHASE_TYPE: { S: purchaseType},
-            }
-        }
-
-        ddb.putItem(params, function(err, data){
+        putItem(auth.currentUser.uid, purchaseName, purchasePrice, purchaseType, function(err, data){
             if(err){
                 console.log("Error", err);
             }
             else{
                 console.log("Success", data);
-                getItem();
+                loadItems();
             }
-        })
-
+        });
     };
 
     const generateChartData = (items) => {
@@ -123,33 +78,20 @@ const Dashboard = () => {
         setShowOverlay(!showOverlay);
     };
 
-    const selectDataToRemove = (data) => {
-        setSelectedData(data);
-    };
-
-    const removeSelectedData = () => {
-        var params = {
-            TableName: "Purchases",
-            Item:{
-                userID: { S: auth.currentUser.uid},
-                purchaseTimestamp: { N: purchaseTimestamp.toString()},
-                PURCHASE_NAME: { S: purchaseName},
-                PURCHASE_PRICE: { N: purchasePrice.toString()},
-                PURCHASE_TYPE: { S: purchaseType},
-            }
-        }
-        ddb.deleteItem(params, function(err, data){
+    const removeItem = (item) => {
+        console.log(item);
+        console.log(item.purchaseTimestamp);
+        deleteItem(auth.currentUser.uid, item.purchaseTimestamp.N, function(err, data){
             if(err){
                 console.log("Error", err);
             }
             else{
                 console.log("Success", data);
+                loadItems();
             }
-        })
-        toggleOverlay();
+        });
     };
     
-
     return (
         <div className='dashboard-container'>
             <div  className='top-left-buttons'>
@@ -189,7 +131,7 @@ const Dashboard = () => {
                 />
             </div>
                 <div className='put-item-container'>
-                <form onSubmit={putItem}>
+                <form onSubmit={uploadItem}>
                     <input 
                         type='text' 
                         placeholder='Enter purchase name' 
@@ -214,12 +156,12 @@ const Dashboard = () => {
                 {showOverlay && (
                 <div className="overlay">
                     <div className="overlay-content">
-                        <h2>Data List</h2>
+                        <h2>Remove an Item</h2>
                         <ul>
                             {items.map((item, index) => (
                                 <li key={index}>
-                                    {item.PURCHASE_NAME.S} - {item.PURCHASE_PRICE.N}
-                                    <button onClick={() => selectDataToRemove(item)}>Remove</button>
+                                    {item.PURCHASE_NAME.S} - {item.PURCHASE_PRICE.N} - {formatDateFromNumber(item.purchaseTimestamp.N)}
+                                    <button onClick={() => removeItem(item)}>Remove</button>
                                 </li>
                             ))}
                         </ul>

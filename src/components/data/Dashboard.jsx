@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { auth } from "../../firebase"
 import { signOut } from 'firebase/auth';
-import {getItem, putItem, deleteItem } from "../../dynamodb";
+import {getItem, putItem, putItemsFromFile, deleteItem } from "../../dynamodb";
 import { Chart } from 'react-google-charts';
 
 const Dashboard = () => {
@@ -10,6 +10,7 @@ const Dashboard = () => {
     const [purchaseType, setPurchaseType] = useState('TestPurchase');
     const [dateStart, setDateStart] = useState('2024-01-01');
     const [dateEnd, setDateEnd] = useState('2024-02-01');
+    const [currentFile, setFile] = useState();
     const[items, setItems] = useState([]);
     const[chartData, setChartData] = useState([]);
     const [showOverlay, setShowOverlay] = useState(false);    
@@ -79,6 +80,10 @@ const Dashboard = () => {
         const day = dateString.slice(8, 10);
         return `${year}${month}${day}999999`;
     };
+
+    const loadFile = () => {
+        putItemsFromFile(currentFile);
+    }
 
     const loadItems = () => {
         getItem(auth.currentUser.uid, getStartDate(dateStart), getEndDate(dateEnd), function(err, data){
@@ -202,6 +207,15 @@ const Dashboard = () => {
                     />
                     <button type='submit'>Add Purchase</button>
                 </form>
+                <input type="file" accept=".csv" onChange={(e)=>setFile(e.target.value)}/>
+                <button class="button" onClick={loadFile}>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75"></path>
+                    </svg>
+                    <div class="text">
+                    Submit file
+                    </div>
+                </button>
                 </div>
                 {showOverlay && (
                 <div className="overlay">

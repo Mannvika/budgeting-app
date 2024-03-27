@@ -40,6 +40,24 @@ export const putItem = (userId, purchaseName, purchasePrice, purchaseType, callb
     ddb.putItem(params, callback);
 };
 
+export const putItemsFromFile = (file, callback) => {
+    const timestamp = Date.now();
+    const purchaseTimestamp = getNumberFormatFromDate(timestamp);
+
+    const params = {
+        TableName: "Purchases",
+        Item:{
+            userID: { S: userId },
+            purchaseTimestamp: { N: purchaseTimestamp.toString() },
+            PURCHASE_NAME: { S: purchaseName },
+            PURCHASE_PRICE: { N: purchasePrice.toString() },
+            PURCHASE_TYPE: { S: purchaseType },
+        }
+    };
+
+    ddb.putItem(params, callback);
+};
+
 export const deleteItem = (userId, purchaseTimestamp, callback) => {
     const params = {
         TableName: "Purchases",

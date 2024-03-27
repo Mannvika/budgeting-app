@@ -8,13 +8,15 @@ const Dashboard = () => {
     const [purchaseName, setPurchaseName] = useState('Test');
     const [purchasePrice, setPurchasePrice] = useState(420.69);
     const [purchaseType, setPurchaseType] = useState('TestPurchase');
+    const [dateStart, setDateStart] = useState('2024-01-01');
+    const [dateEnd, setDateEnd] = useState('2024-02-01');
     const[items, setItems] = useState([]);
     const[chartData, setChartData] = useState([]);
     const [showOverlay, setShowOverlay] = useState(false);    
 
     useEffect(() => {
         loadItems();
-    }, []);
+    }, [dateStart, dateEnd]);
 
     const userSignOut = () =>{
         signOut(auth).then(() => {
@@ -30,8 +32,56 @@ const Dashboard = () => {
         return `${month}/${day}/${year}`;
     };
 
+    const formatDateForHeader = (numberDate) => {
+        const dateString = numberDate.toString();
+        const year = dateString.slice(0, 4);
+        const monthNumber = dateString.slice(5, 7);
+        const day = dateString.slice(8, 10);
+    
+        const monthName = new Date(`${monthNumber}-01`).toLocaleString('default', { month: 'short' });
+    
+        const formattedDate = `${monthName} ${parseInt(day)}${getOrdinalSuffix(parseInt(day))} ${year}`;
+    
+        return formattedDate;
+    };
+
+    const getOrdinalSuffix = (day) => {
+        if (day === 1 || day === 21 || day === 31) {
+            return "st";
+        } else if (day === 2 || day === 22) {
+            return "nd";
+        } else if (day === 3 || day === 23) {
+            return "rd";
+        } else {
+            return "th";
+        }
+    };
+
+    const onStartDateChanged = (startDate) => {
+        if (startDate > dateEnd) {
+            setDateEnd(startDate);
+        }
+        setDateStart(startDate);
+    }
+
+    const getStartDate = (startDate) => {
+        const dateString = startDate.toString();
+        const year = dateString.slice(0, 4);
+        const month = dateString.slice(5, 7);
+        const day = dateString.slice(8, 10);
+        return `${year}${month}${day}000000`;
+    };
+
+    const getEndDate = (endDate) => {
+        const dateString = endDate.toString();
+        const year = dateString.slice(0, 4);
+        const month = dateString.slice(5, 7);
+        const day = dateString.slice(8, 10);
+        return `${year}${month}${day}999999`;
+    };
+
     const loadItems = () => {
-        getItem(auth.currentUser.uid, function(err, data){
+        getItem(auth.currentUser.uid, getStartDate(dateStart), getEndDate(dateEnd), function(err, data){
             if(err){
                 console.log("Error", err);
             }
@@ -75,6 +125,10 @@ const Dashboard = () => {
     };
 
     const toggleOverlay = () => {
+        console.log(dateStart);
+        console.log(dateEnd);
+        console.log(getStartDate(dateStart));
+        console.log(getEndDate(dateEnd));
         setShowOverlay(!showOverlay);
     };
 
@@ -103,17 +157,13 @@ const Dashboard = () => {
                 Settings
                 </div>
             </button>
-            <button class="button" onClick={userSignOut}>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75"></path>
-                </svg>
-                <div class="text">
-                Log Out
-                </div>
-            </button>
             </div>
             <h1>Dashboard</h1>
-            <h2>Jan 1st - Feb 1st</h2>
+            <h2>{`${formatDateForHeader(dateStart)} - ${formatDateForHeader(dateEnd)}`}</h2>
+            <div className='date-container'>
+            <input type="date" id="start" name="range-start" value={dateStart} min="2000-01-01" max="2100-12-01" onChange={(e)=>onStartDateChanged(e.target.value)}/>
+            <input type="date" id="end" name="range-end" value={dateEnd} min={dateStart} max="2100-12-31"onChange={(e)=>setDateEnd(e.target.value)}/>
+            </div>
             <div className='chart-container'>
                 <Chart
                     chartType="PieChart"

@@ -8,12 +8,14 @@ AWS.config.update({
 
 const ddb = new AWS.DynamoDB({ apiVersion: "2012-08-10" });
 
-export const getItem = (userId, callback) => {
+export const getItem = (userId, dateStart, dateEnd, callback) => {
     const params = {
         ExpressionAttributeValues: {
-            ":u": { S: userId }
+            ":u": { S: userId },
+            ":start": { N: dateStart.toString() },
+            ":end": { N: dateEnd.toString() }
         },
-        KeyConditionExpression: "userID = :u",
+        KeyConditionExpression: "userID = :u AND purchaseTimestamp BETWEEN :start AND :end",
         TableName: "Purchases",
     };
 

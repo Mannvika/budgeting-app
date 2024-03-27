@@ -10,9 +10,9 @@ const Dashboard = () => {
     const [purchaseType, setPurchaseType] = useState('TestPurchase');
     const [dateStart, setDateStart] = useState('2024-01-01');
     const [dateEnd, setDateEnd] = useState('2024-02-01');
-    const [currentFile, setFile] = useState();
     const[items, setItems] = useState([]);
     const[chartData, setChartData] = useState([]);
+    const[currentFile, setCurrentFile] = useState();
     const [showOverlay, setShowOverlay] = useState(false);    
 
     useEffect(() => {
@@ -70,7 +70,7 @@ const Dashboard = () => {
         const year = dateString.slice(0, 4);
         const month = dateString.slice(5, 7);
         const day = dateString.slice(8, 10);
-        return `${year}${month}${day}000000`;
+        return `${year}${month}${day}0000000`;
     };
 
     const getEndDate = (endDate) => {
@@ -78,12 +78,8 @@ const Dashboard = () => {
         const year = dateString.slice(0, 4);
         const month = dateString.slice(5, 7);
         const day = dateString.slice(8, 10);
-        return `${year}${month}${day}999999`;
+        return `${year}${month}${day}9999999`;
     };
-
-    const loadFile = () => {
-        putItemsFromFile(currentFile);
-    }
 
     const loadItems = () => {
         getItem(auth.currentUser.uid, getStartDate(dateStart), getEndDate(dateEnd), function(err, data){
@@ -150,6 +146,22 @@ const Dashboard = () => {
             }
         });
     };
+
+    const changeHandler = (event) => {
+        setCurrentFile(event.target.files[0]);
+    };
+
+    const submitFile = () =>{
+        putItemsFromFile(auth.currentUser.uid, currentFile, function(err, data){
+            if(err){
+                console.log("Error", err);
+            }
+            else{
+                console.log("Success", data);
+                loadItems();
+            }
+        });
+    }
     
     return (
         <div className='dashboard-container'>
@@ -207,16 +219,22 @@ const Dashboard = () => {
                     />
                     <button type='submit'>Add Purchase</button>
                 </form>
-                <input type="file" accept=".csv" onChange={(e)=>setFile(e.target.value)}/>
-                <button class="button" onClick={loadFile}>
+                <input
+                    type="file"
+                    name="file"
+                    accept=".csv"
+                    onChange={changeHandler}
+                    style={{ display: "block", margin: "10px auto" }}
+                />
+                </div>
+                <button class="button" onClick={submitFile}>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75"></path>
                     </svg>
                     <div class="text">
-                    Submit file
+                    Submit File
                     </div>
                 </button>
-                </div>
                 {showOverlay && (
                 <div className="overlay">
                     <div className="overlay-content">
